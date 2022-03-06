@@ -18,22 +18,43 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
 
+function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
+
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+
+function _classPrivateFieldGet(receiver, privateMap) { var descriptor = _classExtractFieldDescriptor(receiver, privateMap, "get"); return _classApplyDescriptorGet(receiver, descriptor); }
+
+function _classApplyDescriptorGet(receiver, descriptor) { if (descriptor.get) { return descriptor.get.call(receiver); } return descriptor.value; }
+
+function _classPrivateFieldSet(receiver, privateMap, value) { var descriptor = _classExtractFieldDescriptor(receiver, privateMap, "set"); _classApplyDescriptorSet(receiver, descriptor, value); return value; }
+
+function _classExtractFieldDescriptor(receiver, privateMap, action) { if (!privateMap.has(receiver)) { throw new TypeError("attempted to " + action + " private field on non-instance"); } return privateMap.get(receiver); }
+
+function _classApplyDescriptorSet(receiver, descriptor, value) { if (descriptor.set) { descriptor.set.call(receiver, value); } else { if (!descriptor.writable) { throw new TypeError("attempted to set read only private field"); } descriptor.value = value; } }
+
+var _lottoNumberList = /*#__PURE__*/new WeakMap();
+
 var Lotto = /*#__PURE__*/function () {
   function Lotto() {
     _classCallCheck(this, Lotto);
 
-    this.lottoNumberList = [];
+    _classPrivateFieldInitSpec(this, _lottoNumberList, {
+      writable: true,
+      value: void 0
+    });
+
+    _classPrivateFieldSet(this, _lottoNumberList, []);
   }
 
   _createClass(Lotto, [{
     key: "setLotto",
     value: function setLotto(lottoNumbers) {
-      this.lottoNumberList = lottoNumbers;
+      _classPrivateFieldSet(this, _lottoNumberList, lottoNumbers);
     }
   }, {
     key: "getLotto",
     value: function getLotto() {
-      return this.lottoNumberList;
+      return _classPrivateFieldGet(this, _lottoNumberList);
     }
   }]);
 
@@ -78,7 +99,7 @@ var LottoApp = /*#__PURE__*/function () {
     _classCallCheck(this, LottoApp);
 
     this.$app = (0,_view_dom__WEBPACK_IMPORTED_MODULE_3__.$)(app);
-    this.lottoList = [];
+    this.lottoList = new _PurchasedLotto__WEBPACK_IMPORTED_MODULE_4__["default"]();
     (0,_view_dom__WEBPACK_IMPORTED_MODULE_3__.render)(this.$app, (0,_view_templates__WEBPACK_IMPORTED_MODULE_2__.generatePaymentSection)());
     this.bindEvent();
   }
@@ -87,9 +108,9 @@ var LottoApp = /*#__PURE__*/function () {
     key: "bindEvent",
     value: function bindEvent() {
       (0,_view_dom__WEBPACK_IMPORTED_MODULE_3__.$)(_util_constants__WEBPACK_IMPORTED_MODULE_1__.ID.PAYMENT_BUTTON).addEventListener('click', this.onSubmitPayment.bind(this));
-      (0,_view_dom__WEBPACK_IMPORTED_MODULE_3__.$)(_util_constants__WEBPACK_IMPORTED_MODULE_1__.ID.MODAL_CLOSE_BUTTON).addEventListener('click', _view_view__WEBPACK_IMPORTED_MODULE_5__.modalClose.bind(this));
-      window.addEventListener('click', function (event) {
-        if (event.target === document.querySelector(_util_constants__WEBPACK_IMPORTED_MODULE_1__.CLASS.MODAL_BACKGROUND)) {
+      (0,_view_dom__WEBPACK_IMPORTED_MODULE_3__.$)(_util_constants__WEBPACK_IMPORTED_MODULE_1__.ID.MODAL_CLOSE_BUTTON).addEventListener('click', _view_view__WEBPACK_IMPORTED_MODULE_5__.modalClose);
+      (0,_view_dom__WEBPACK_IMPORTED_MODULE_3__.$)(_util_constants__WEBPACK_IMPORTED_MODULE_1__.CLASS.MODAL_BACKGROUND).addEventListener('click', function (event) {
+        if (event.target === (0,_view_dom__WEBPACK_IMPORTED_MODULE_3__.$)(_util_constants__WEBPACK_IMPORTED_MODULE_1__.CLASS.MODAL_BACKGROUND)) {
           (0,_view_view__WEBPACK_IMPORTED_MODULE_5__.modalClose)();
         }
       });
@@ -107,15 +128,14 @@ var LottoApp = /*#__PURE__*/function () {
           throw new Error(_util_constants__WEBPACK_IMPORTED_MODULE_1__.ERROR_MESSAGE.MONEY_OUT_OF_RANGE);
         }
 
-        if ((0,_util_utils__WEBPACK_IMPORTED_MODULE_0__.isRemainder)(payment, _util_constants__WEBPACK_IMPORTED_MODULE_1__.MONEY.STANDARD)) {
+        if ((0,_util_utils__WEBPACK_IMPORTED_MODULE_0__.isRemainder)(payment, _util_constants__WEBPACK_IMPORTED_MODULE_1__.MONEY_STANDARD)) {
           throw new Error(_util_constants__WEBPACK_IMPORTED_MODULE_1__.ERROR_MESSAGE.MONEY_OUT_OF_STANDARD);
         }
 
         (0,_view_view__WEBPACK_IMPORTED_MODULE_5__.toggleDisablePayment)();
-        this.lottoList = new _PurchasedLotto__WEBPACK_IMPORTED_MODULE_4__["default"]();
-        this.lottoList.setPurchasedLotto(payment / _util_constants__WEBPACK_IMPORTED_MODULE_1__.MONEY.STANDARD);
+        this.lottoList.setPurchasedLotto(payment / _util_constants__WEBPACK_IMPORTED_MODULE_1__.MONEY_STANDARD);
         this.renderPurchasedSection();
-        (0,_view_view__WEBPACK_IMPORTED_MODULE_5__.moveFocus)();
+        (0,_view_view__WEBPACK_IMPORTED_MODULE_5__.moveFocusToNextNumber)();
       } catch (_ref) {
         var message = _ref.message;
         alert(message);
@@ -127,7 +147,7 @@ var LottoApp = /*#__PURE__*/function () {
     value: function renderPurchasedSection() {
       (0,_view_dom__WEBPACK_IMPORTED_MODULE_3__.render)(this.$app, (0,_view_templates__WEBPACK_IMPORTED_MODULE_2__.generatePurchasedSection)(this.lottoList.getPurchasedLotto()));
       (0,_view_dom__WEBPACK_IMPORTED_MODULE_3__.render)(this.$app, (0,_view_templates__WEBPACK_IMPORTED_MODULE_2__.generateWinningNumberSection)());
-      (0,_view_dom__WEBPACK_IMPORTED_MODULE_3__.$)(_util_constants__WEBPACK_IMPORTED_MODULE_1__.ID.LOTTO_LIST_TOGGLE_BUTTON).addEventListener('click', _view_view__WEBPACK_IMPORTED_MODULE_5__.toggleButton.bind(this));
+      (0,_view_dom__WEBPACK_IMPORTED_MODULE_3__.$)(_util_constants__WEBPACK_IMPORTED_MODULE_1__.ID.LOTTO_LIST_TOGGLE_BUTTON).addEventListener('click', _view_view__WEBPACK_IMPORTED_MODULE_5__.toggleButton);
       (0,_view_dom__WEBPACK_IMPORTED_MODULE_3__.$)(_util_constants__WEBPACK_IMPORTED_MODULE_1__.ID.RESULT_CHECKING_BUTTON).addEventListener('click', this.onClickResultButton.bind(this));
     }
   }, {
@@ -163,12 +183,12 @@ var LottoApp = /*#__PURE__*/function () {
     key: "onClickRestart",
     value: function onClickRestart(event) {
       event.preventDefault();
-      (0,_view_dom__WEBPACK_IMPORTED_MODULE_3__.$)(_util_constants__WEBPACK_IMPORTED_MODULE_1__.CLASS.MODAL_BACKGROUND).classList.remove('show');
+      (0,_view_view__WEBPACK_IMPORTED_MODULE_5__.modalClose)();
       (0,_view_dom__WEBPACK_IMPORTED_MODULE_3__.$)(_util_constants__WEBPACK_IMPORTED_MODULE_1__.ID.PURCHASED_LOTTO_LIST_SECTION).remove();
       (0,_view_dom__WEBPACK_IMPORTED_MODULE_3__.$)(_util_constants__WEBPACK_IMPORTED_MODULE_1__.ID.WINNING_NUMBER_SECTION).remove();
       (0,_view_view__WEBPACK_IMPORTED_MODULE_5__.toggleDisablePayment)();
       (0,_view_dom__WEBPACK_IMPORTED_MODULE_3__.initInput)((0,_view_dom__WEBPACK_IMPORTED_MODULE_3__.$)(_util_constants__WEBPACK_IMPORTED_MODULE_1__.ID.PAYMENT_INPUT));
-      this.lottoList = [];
+      this.lottoList = new _PurchasedLotto__WEBPACK_IMPORTED_MODULE_4__["default"]();
     }
   }]);
 
@@ -197,14 +217,35 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); Object.defineProperty(Constructor, "prototype", { writable: false }); return Constructor; }
 
+function _classPrivateFieldInitSpec(obj, privateMap, value) { _checkPrivateRedeclaration(obj, privateMap); privateMap.set(obj, value); }
+
+function _checkPrivateRedeclaration(obj, privateCollection) { if (privateCollection.has(obj)) { throw new TypeError("Cannot initialize the same private elements twice on an object"); } }
+
+function _classPrivateFieldGet(receiver, privateMap) { var descriptor = _classExtractFieldDescriptor(receiver, privateMap, "get"); return _classApplyDescriptorGet(receiver, descriptor); }
+
+function _classApplyDescriptorGet(receiver, descriptor) { if (descriptor.get) { return descriptor.get.call(receiver); } return descriptor.value; }
+
+function _classPrivateFieldSet(receiver, privateMap, value) { var descriptor = _classExtractFieldDescriptor(receiver, privateMap, "set"); _classApplyDescriptorSet(receiver, descriptor, value); return value; }
+
+function _classExtractFieldDescriptor(receiver, privateMap, action) { if (!privateMap.has(receiver)) { throw new TypeError("attempted to " + action + " private field on non-instance"); } return privateMap.get(receiver); }
+
+function _classApplyDescriptorSet(receiver, descriptor, value) { if (descriptor.set) { descriptor.set.call(receiver, value); } else { if (!descriptor.writable) { throw new TypeError("attempted to set read only private field"); } descriptor.value = value; } }
 
 
+
+
+var _lottoList = /*#__PURE__*/new WeakMap();
 
 var PurchasedLotto = /*#__PURE__*/function () {
   function PurchasedLotto() {
     _classCallCheck(this, PurchasedLotto);
 
-    this.lottoList = [];
+    _classPrivateFieldInitSpec(this, _lottoList, {
+      writable: true,
+      value: void 0
+    });
+
+    _classPrivateFieldSet(this, _lottoList, []);
   }
 
   _createClass(PurchasedLotto, [{
@@ -213,18 +254,19 @@ var PurchasedLotto = /*#__PURE__*/function () {
       for (var i = 0; i < count; i++) {
         var lotto = new _Lotto__WEBPACK_IMPORTED_MODULE_0__["default"]();
         lotto.setLotto((0,_util_utils__WEBPACK_IMPORTED_MODULE_1__.createRandomNumberList)());
-        this.lottoList.push(lotto.getLotto());
+
+        _classPrivateFieldGet(this, _lottoList).push(lotto.getLotto());
       }
     }
   }, {
     key: "getPurchasedLotto",
     value: function getPurchasedLotto() {
-      return this.lottoList;
+      return _classPrivateFieldGet(this, _lottoList);
     }
   }, {
     key: "count",
     value: function count() {
-      return this.lottoList.length;
+      return _classPrivateFieldGet(this, _lottoList).length;
     }
   }]);
 
@@ -246,10 +288,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "CLASS": () => (/* binding */ CLASS),
 /* harmony export */   "ID": () => (/* binding */ ID),
 /* harmony export */   "CLASS_NAME": () => (/* binding */ CLASS_NAME),
-/* harmony export */   "MONEY": () => (/* binding */ MONEY),
+/* harmony export */   "MONEY_STANDARD": () => (/* binding */ MONEY_STANDARD),
+/* harmony export */   "RANK": () => (/* binding */ RANK),
+/* harmony export */   "RANK_PRIZE": () => (/* binding */ RANK_PRIZE),
 /* harmony export */   "LOTTO": () => (/* binding */ LOTTO),
 /* harmony export */   "ERROR_MESSAGE": () => (/* binding */ ERROR_MESSAGE)
 /* harmony export */ });
+var _RANK_PRIZE;
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 var CLASS = {
   LOTTO_NUMBER: '.lotto-number',
   LOTTO: '.lotto',
@@ -276,20 +324,26 @@ var CLASS_NAME = {
   DISABLED: 'disabled',
   TOGGLE_SWITCH: 'toggle-switch',
   DIRECTION_COLUMN: 'direction-column',
-  INVISIBLE: 'invisible'
+  INVISIBLE: 'invisible',
+  HIDDEN: 'hidden'
 };
-var MONEY = {
-  STANDARD: 1000,
-  PRIZE: [5000, 50000, 1500000, 30000000, 2000000000]
+var MONEY_STANDARD = 1000;
+var RANK = {
+  FIRST: 'first',
+  SECOND: 'second',
+  THIRD: 'third',
+  FOURTH: 'fourth',
+  FIFTH: 'fifth'
 };
+var RANK_PRIZE = (_RANK_PRIZE = {}, _defineProperty(_RANK_PRIZE, RANK.FIFTH, 5000), _defineProperty(_RANK_PRIZE, RANK.FOURTH, 50000), _defineProperty(_RANK_PRIZE, RANK.THIRD, 1500000), _defineProperty(_RANK_PRIZE, RANK.SECOND, 30000000), _defineProperty(_RANK_PRIZE, RANK.FIRST, 2000000000), _RANK_PRIZE);
 var LOTTO = {
   MIN_NUMBER: 1,
   MAX_NUMBER: 45,
   LENGTH: 6
 };
 var ERROR_MESSAGE = {
-  MONEY_OUT_OF_RANGE: "\uAD6C\uC785\uD560 \uAE08\uC561\uC744 \uC798\uBABB \uC785\uB825 \uD558\uC168\uC2B5\uB2C8\uB2E4. \uAD6C\uC785\uD560 \uAE08\uC561\uC740 ".concat(MONEY.STANDARD, "\uC6D0 \uC774\uC0C1\uC744 \uC785\uB825\uD574\uC8FC\uC154\uC57C \uD569\uB2C8\uB2E4"),
-  MONEY_OUT_OF_STANDARD: "\uAD6C\uC785\uD560 \uAE08\uC561\uC744 \uC798\uBABB \uC785\uB825 \uD558\uC168\uC2B5\uB2C8\uB2E4. \uAD6C\uC785\uD560 \uAE08\uC561\uC740 ".concat(MONEY.STANDARD, "\uC6D0 \uB2E8\uC704\uB85C \uC785\uB825\uD574\uC8FC\uC154\uC57C \uD569\uB2C8\uB2E4"),
+  MONEY_OUT_OF_RANGE: "\uAD6C\uC785\uD560 \uAE08\uC561\uC744 \uC798\uBABB \uC785\uB825 \uD558\uC168\uC2B5\uB2C8\uB2E4. \uAD6C\uC785\uD560 \uAE08\uC561\uC740 ".concat(MONEY_STANDARD, "\uC6D0 \uC774\uC0C1\uC744 \uC785\uB825\uD574\uC8FC\uC154\uC57C \uD569\uB2C8\uB2E4"),
+  MONEY_OUT_OF_STANDARD: "\uAD6C\uC785\uD560 \uAE08\uC561\uC744 \uC798\uBABB \uC785\uB825 \uD558\uC168\uC2B5\uB2C8\uB2E4. \uAD6C\uC785\uD560 \uAE08\uC561\uC740 ".concat(MONEY_STANDARD, "\uC6D0 \uB2E8\uC704\uB85C \uC785\uB825\uD574\uC8FC\uC154\uC57C \uD569\uB2C8\uB2E4"),
   NUMBER_OUT_OF_RANGE: "\uC9C0\uB09C\uC8FC \uB2F9\uCCA8 \uBC88\uD638\uB610\uB294 \uBCF4\uB108\uC2A4 \uBC88\uD638\uB97C \uC798\uBABB \uC785\uB825\uD558\uC168\uC2B5\uB2C8\uB2E4. ".concat(LOTTO.MIN_NUMBER, " ~ ").concat(LOTTO.MAX_NUMBER, " \uC0AC\uC774\uC758 \uC22B\uC790\uB97C \uC785\uB825\uD574\uC8FC\uC138\uC694"),
   DUPLICATE_NUMBER: '지난주 당첨 번호와 보너스 번호를 잘못 입력하셨습니다. 서로 다른 숫자를 입력해주세요'
 };
@@ -312,11 +366,23 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "winningCount": () => (/* binding */ winningCount),
 /* harmony export */   "isBounusNumber": () => (/* binding */ isBounusNumber),
 /* harmony export */   "isOverlapped": () => (/* binding */ isOverlapped),
-/* harmony export */   "totalWinningCount": () => (/* binding */ totalWinningCount),
-/* harmony export */   "totalWinningMoney": () => (/* binding */ totalWinningMoney),
-/* harmony export */   "winningRate": () => (/* binding */ winningRate)
+/* harmony export */   "getWinningCountResult": () => (/* binding */ getWinningCountResult),
+/* harmony export */   "getTotalWinningMoney": () => (/* binding */ getTotalWinningMoney),
+/* harmony export */   "getWinningRate": () => (/* binding */ getWinningRate)
 /* harmony export */ });
 /* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./constants */ "./src/js/util/constants.js");
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
 
 var isPositiveInteger = function isPositiveInteger(payment) {
   return Number.isInteger(payment) && payment > 0;
@@ -354,33 +420,45 @@ var isBounusNumber = function isBounusNumber(lotto, bounusNumber) {
 var isOverlapped = function isOverlapped(winningLotto) {
   return new Set(winningLotto).size !== winningLotto.length;
 };
-var totalWinningCount = function totalWinningCount(lottoList, winningNumber, bonusNumber) {
-  var result = [0, 0, 0, 0, 0];
+
+var getRank = function getRank(count, bonusCount) {
+  var sum = count + bonusCount;
+  if (count === 6) return _constants__WEBPACK_IMPORTED_MODULE_0__.RANK.FIRST;
+  if (sum === 6) return _constants__WEBPACK_IMPORTED_MODULE_0__.RANK.SECOND;
+  if (sum === 5) return _constants__WEBPACK_IMPORTED_MODULE_0__.RANK.THIRD;
+  if (sum === 4) return _constants__WEBPACK_IMPORTED_MODULE_0__.RANK.FOURTH;
+  if (sum === 3) return _constants__WEBPACK_IMPORTED_MODULE_0__.RANK.FIFTH;
+};
+
+var getWinningCountResult = function getWinningCountResult(lottoList, winningNumber, bonusNumber) {
+  var totalWinningCount = {
+    fifth: 0,
+    fourth: 0,
+    third: 0,
+    second: 0,
+    first: 0
+  };
   lottoList.forEach(function (lotto) {
     var count = winningCount(lotto, winningNumber);
     var bonusCount = isBounusNumber(lotto, bonusNumber);
 
-    if (count === 6) {
-      result[4] += 1;
-    }
-
-    if (count === 5 && bonusCount === 1) {
-      result[3] += 1;
-    }
-
-    if (count + bonusCount > 2 && count + bonusCount < 6) {
-      result[count + bonusCount - 3] += 1;
+    if (count + bonusCount > 2) {
+      totalWinningCount[getRank(count, bonusCount)] += 1;
     }
   });
-  return result;
+  return totalWinningCount;
 };
-var totalWinningMoney = function totalWinningMoney(result) {
-  return result.reduce(function (sum, count, index) {
-    return sum + count * _constants__WEBPACK_IMPORTED_MODULE_0__.MONEY.PRIZE[index];
+var getTotalWinningMoney = function getTotalWinningMoney(rankCount) {
+  return Object.entries(rankCount).reduce(function (sum, _ref) {
+    var _ref2 = _slicedToArray(_ref, 2),
+        key = _ref2[0],
+        value = _ref2[1];
+
+    return sum + value * _constants__WEBPACK_IMPORTED_MODULE_0__.RANK_PRIZE[key];
   }, 0);
 };
-var winningRate = function winningRate(totalMoney, lottoCount) {
-  return Math.floor((totalMoney - lottoCount * _constants__WEBPACK_IMPORTED_MODULE_0__.MONEY.STANDARD) / (lottoCount * _constants__WEBPACK_IMPORTED_MODULE_0__.MONEY.STANDARD) * 100);
+var getWinningRate = function getWinningRate(totalMoney, lottoCount) {
+  return Math.floor((totalMoney - lottoCount * _constants__WEBPACK_IMPORTED_MODULE_0__.MONEY_STANDARD) / (lottoCount * _constants__WEBPACK_IMPORTED_MODULE_0__.MONEY_STANDARD) * 100);
 };
 
 /***/ }),
@@ -435,7 +513,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   "generateWinningNumberSection": () => (/* binding */ generateWinningNumberSection)
 /* harmony export */ });
 var generatePaymentSection = function generatePaymentSection() {
-  return "\n  <section id=\"payment-section\">\n    <h2 hidden>\uAD6C\uC785\uD560 \uAE08\uC561</h2>\n    <label for=\"payment-input\">\uAD6C\uC785\uD560 \uAE08\uC561\uC744 \uC785\uB825\uD574\uC8FC\uC138\uC694.</label>\n    <form class=\"payment-form\">\n      <input name=\"payment-input\" id=\"payment-input\" type=\"number\" name=\"payment\" placeholder=\"\uAE08\uC561\" min=\"1000\" step=\"1000\" autofocus>\n      <button id=\"payment-button\">\uAD6C\uC785</button>\n    </form>\n  </section>\n  <section class=\"modal-background\"> \n      <div class=\"modal\">\n        <div class=\"modal-header\">\n          <button id=\"modal-close-button\">X</button>\n        </div>\n        <div class=\"modal-body\">\n          <h2 class=\"modal-title\">\uD83C\uDFC6 \uB2F9\uCCA8 \uD1B5\uACC4 \uD83C\uDFC6</h2>\n          <table>\n            <thead>\n              <tr>\n                <th>\uC77C\uCE58 \uAC1C\uC218</th>\n                <th>\uB2F9\uCCA8\uAE08</th>\n                <th>\uB2F9\uCCA8 \uAC1C\uC218</th>\n              </tr>\n            </thead>\n            <tbody>\n            <tr>\n              <td>3\uAC1C</td>\n              <td>5,000</td>\n              <td class=\"winning-count\">\uAC1C</td>\n            </tr>\n            <tr>\n              <td>4\uAC1C</td>\n              <td>50,000</td>\n              <td class=\"winning-count\">\uAC1C</td>\n            </tr>\n            <tr>\n              <td>5\uAC1C</td>\n              <td>1,500,000</td>\n              <td class=\"winning-count\">\uAC1C</td>\n            </tr>\n            <tr>\n              <td>5\uAC1C+\uBCF4\uB108\uC2A4\uBCFC</td>\n              <td>30,000,000</td>\n              <td class=\"winning-count\">\uAC1C</td>\n            </tr>\n            <tr>\n              <td>6\uAC1C</td>\n              <td>2,000,000,000</td>\n              <td class=\"winning-count\">\uAC1C</td>\n            </tr>\n            </tbody>\n          </table>\n          <p class=\"modal-earning-weight\">\uB2F9\uC2E0\uC758 \uCD1D \uC218\uC775\uB960\uC740 <span class=\"earning-weight\"></span>%\uC785\uB2C8\uB2E4</p>\n          <button id=\"restart\">\uB2E4\uC2DC \uC2DC\uC791\uD558\uAE30</button>\n        </div>\n      </div> \n    </section>\n  ";
+  return "\n  <section id=\"payment-section\">\n    <h2 hidden>\uAD6C\uC785\uD560 \uAE08\uC561</h2>\n    <label for=\"payment-input\">\uAD6C\uC785\uD560 \uAE08\uC561\uC744 \uC785\uB825\uD574\uC8FC\uC138\uC694.</label>\n    <form class=\"payment-form\">\n      <input name=\"payment-input\" id=\"payment-input\" type=\"number\" name=\"payment\" placeholder=\"\uAE08\uC561\" min=\"1000\" step=\"1000\" autofocus>\n      <button id=\"payment-button\">\uAD6C\uC785</button>\n    </form>\n  </section>\n  <section class=\"modal-background\"> \n      <div class=\"modal\">\n        <div class=\"modal-header\">\n          <button id=\"modal-close-button\">X</button>\n        </div>\n        <div class=\"modal-body\">\n          <h2 class=\"modal-title\">\uD83C\uDFC6 \uB2F9\uCCA8 \uD1B5\uACC4 \uD83C\uDFC6</h2>\n          <table>\n            <thead>\n              <tr>\n                <th>\uC77C\uCE58 \uAC1C\uC218</th>\n                <th>\uB2F9\uCCA8\uAE08</th>\n                <th>\uB2F9\uCCA8 \uAC1C\uC218</th>\n              </tr>\n            </thead>\n            <tbody>\n            <tr>\n              <td>3\uAC1C</td>\n              <td>5,000</td>\n              <td class=\"winning-count\" data-rank='fifth'>\uAC1C</td>\n            </tr>\n            <tr>\n              <td>4\uAC1C</td>\n              <td>50,000</td>\n              <td class=\"winning-count\" data-rank='fourth'>\uAC1C</td>\n            </tr>\n            <tr>\n              <td>5\uAC1C</td>\n              <td>1,500,000</td>\n              <td class=\"winning-count\" data-rank='third'>\uAC1C</td>\n            </tr>\n            <tr>\n              <td>5\uAC1C+\uBCF4\uB108\uC2A4\uBCFC</td>\n              <td>30,000,000</td>\n              <td class=\"winning-count\" data-rank='second'>\uAC1C</td>\n            </tr>\n            <tr>\n              <td>6\uAC1C</td>\n              <td>2,000,000,000</td>\n              <td class=\"winning-count\" data-rank='first'>\uAC1C</td>\n            </tr>\n            </tbody>\n          </table>\n          <p class=\"modal-earning-weight\">\uB2F9\uC2E0\uC758 \uCD1D \uC218\uC775\uB960\uC740 <span class=\"earning-weight\"></span>%\uC785\uB2C8\uB2E4</p>\n          <button id=\"restart\">\uB2E4\uC2DC \uC2DC\uC791\uD558\uAE30</button>\n        </div>\n      </div> \n    </section>\n  ";
 };
 
 var generatePurchasedLotto = function generatePurchasedLotto(lotto) {
@@ -461,7 +539,7 @@ var generateWinningNumberSection = function generateWinningNumberSection() {
 
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   "moveFocus": () => (/* binding */ moveFocus),
+/* harmony export */   "moveFocusToNextNumber": () => (/* binding */ moveFocusToNextNumber),
 /* harmony export */   "toggleDisablePayment": () => (/* binding */ toggleDisablePayment),
 /* harmony export */   "generateResult": () => (/* binding */ generateResult),
 /* harmony export */   "toggleButton": () => (/* binding */ toggleButton),
@@ -473,21 +551,26 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-var moveFocus = function moveFocus() {
+
+var checkInputRange = function checkInputRange(numberInput) {
+  if (!numberInput.checkValidity()) {
+    (0,_dom__WEBPACK_IMPORTED_MODULE_1__.$)(_util_constants__WEBPACK_IMPORTED_MODULE_0__.CLASS.ERROR_TEXT).classList.remove(_util_constants__WEBPACK_IMPORTED_MODULE_0__.CLASS_NAME.HIDDEN);
+  }
+
+  if (Array.from((0,_dom__WEBPACK_IMPORTED_MODULE_1__.$$)(_util_constants__WEBPACK_IMPORTED_MODULE_0__.CLASS.WINNING_NUMBER_INPUT)).every(function (element) {
+    return element.checkValidity();
+  })) {
+    (0,_dom__WEBPACK_IMPORTED_MODULE_1__.$)(_util_constants__WEBPACK_IMPORTED_MODULE_0__.CLASS.ERROR_TEXT).classList.add(_util_constants__WEBPACK_IMPORTED_MODULE_0__.CLASS_NAME.HIDDEN);
+  }
+};
+
+var moveFocusToNextNumber = function moveFocusToNextNumber() {
   var $winningNumberInputs = (0,_dom__WEBPACK_IMPORTED_MODULE_1__.$$)(_util_constants__WEBPACK_IMPORTED_MODULE_0__.CLASS.WINNING_NUMBER_INPUT);
   var $bonusNumberInput = (0,_dom__WEBPACK_IMPORTED_MODULE_1__.$)(_util_constants__WEBPACK_IMPORTED_MODULE_0__.ID.BONUS_NUMBER_INPUT);
   $winningNumberInputs[0].focus();
   $winningNumberInputs.forEach(function (numberInput, index) {
     numberInput.addEventListener('input', function () {
-      if (!numberInput.checkValidity()) {
-        (0,_dom__WEBPACK_IMPORTED_MODULE_1__.$)(_util_constants__WEBPACK_IMPORTED_MODULE_0__.CLASS.ERROR_TEXT).classList.remove('hidden');
-      }
-
-      if (Array.from($winningNumberInputs).every(function (element) {
-        return element.checkValidity();
-      })) {
-        (0,_dom__WEBPACK_IMPORTED_MODULE_1__.$)(_util_constants__WEBPACK_IMPORTED_MODULE_0__.CLASS.ERROR_TEXT).classList.add('hidden');
-      }
+      checkInputRange(numberInput);
 
       if (numberInput.value.length === 2) {
         if (index === 5) {
@@ -510,12 +593,12 @@ var toggleDisablePayment = function toggleDisablePayment() {
   (0,_dom__WEBPACK_IMPORTED_MODULE_1__.toggleDisabled)((0,_dom__WEBPACK_IMPORTED_MODULE_1__.$)(_util_constants__WEBPACK_IMPORTED_MODULE_0__.ID.PAYMENT_INPUT));
 };
 var generateResult = function generateResult(lottoList, winningNumber, bonusNumber) {
-  var result = (0,_util_utils__WEBPACK_IMPORTED_MODULE_2__.totalWinningCount)(lottoList.getPurchasedLotto(), winningNumber, bonusNumber);
-  var totalMoney = (0,_util_utils__WEBPACK_IMPORTED_MODULE_2__.totalWinningMoney)(result);
-  (0,_dom__WEBPACK_IMPORTED_MODULE_1__.$$)(_util_constants__WEBPACK_IMPORTED_MODULE_0__.CLASS.WINNING_COUNT).forEach(function (element, index) {
-    element.textContent = "".concat(result[index], "\uAC1C");
+  var winningCountResult = (0,_util_utils__WEBPACK_IMPORTED_MODULE_2__.getWinningCountResult)(lottoList.getPurchasedLotto(), winningNumber, bonusNumber);
+  var totalMoney = (0,_util_utils__WEBPACK_IMPORTED_MODULE_2__.getTotalWinningMoney)(winningCountResult);
+  (0,_dom__WEBPACK_IMPORTED_MODULE_1__.$$)(_util_constants__WEBPACK_IMPORTED_MODULE_0__.CLASS.WINNING_COUNT).forEach(function (element) {
+    element.textContent = "".concat(winningCountResult[element.dataset.rank], "\uAC1C");
   });
-  (0,_dom__WEBPACK_IMPORTED_MODULE_1__.$)(_util_constants__WEBPACK_IMPORTED_MODULE_0__.CLASS.EARNING_WEIGHT).textContent = (0,_util_utils__WEBPACK_IMPORTED_MODULE_2__.winningRate)(totalMoney, lottoList.count());
+  (0,_dom__WEBPACK_IMPORTED_MODULE_1__.$)(_util_constants__WEBPACK_IMPORTED_MODULE_0__.CLASS.EARNING_WEIGHT).textContent = (0,_util_utils__WEBPACK_IMPORTED_MODULE_2__.getWinningRate)(totalMoney, lottoList.count());
 };
 var toggleButton = function toggleButton() {
   (0,_dom__WEBPACK_IMPORTED_MODULE_1__.toggleClassName)((0,_dom__WEBPACK_IMPORTED_MODULE_1__.$)(_util_constants__WEBPACK_IMPORTED_MODULE_0__.ID.LOTTO_LIST_TOGGLE_BUTTON), _util_constants__WEBPACK_IMPORTED_MODULE_0__.CLASS_NAME.TOGGLE_SWITCH);
@@ -558,7 +641,7 @@ ___CSS_LOADER_EXPORT___.push([module.id, "@import url(https://cdn.jsdelivr.net/n
 var ___CSS_LOADER_URL_REPLACEMENT_0___ = _node_modules_css_loader_dist_runtime_getUrl_js__WEBPACK_IMPORTED_MODULE_2___default()(___CSS_LOADER_URL_IMPORT_0___);
 var ___CSS_LOADER_URL_REPLACEMENT_1___ = _node_modules_css_loader_dist_runtime_getUrl_js__WEBPACK_IMPORTED_MODULE_2___default()(___CSS_LOADER_URL_IMPORT_1___);
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, "/* font Roboto */\n/* reset css */\n\n* {\n  box-sizing: border-box;\n}\n\nhtml {\n  font-family: 'Roboto', sans-serif;\n}\n\nbody {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  background-color: #E5E5E5;\n  height: 100vh;\n}\n\n/* COMMON */\np,\nlabel {\n  font-size: 15px;\n  line-height: 24px;\n\tletter-spacing: 0.5px;\n\tcolor: rgba(0, 0, 0, 0.87);\n}\n\ninput {\n  border: 1px solid #B4B4B4;\n}\n\ninput::-webkit-inner-spin-button {\n  -webkit-appearance: none;\n}\n\ninput:focus {\n  outline: 1px solid #00BCD4;\n  border: none;\n}\n\ninput:invalid {\n  border: none;\n  outline: 1.5px solid #E36DB0;\n  background-color: #fcdfef;\n}\n\n.error-text {\n  color: #E36DB0;\n  text-align: center;\n}\n\nbutton {\n  background: inherit; \n  border: none; \n  box-shadow: none; \n  padding: 0; \n  overflow: visible; \n  cursor: pointer;\n}\n\n.invisible {\n  display: none;\n}\n\n.hidden {\n  visibility: hidden;\n}\n\n#payment-section .payment-form #payment-button.disabled {\n  background-color: #828282;\n  opacity: 0.6;\n  cursor: default;\n}\n\n#app {\n  display: flex;\n  flex-direction: column;\n\n  border: 1px solid rgba(0, 0, 0, 0.12);\n  border-radius: 4px;\n  background-color: white;\n\n  padding: 0 16px;\n\n  height: 727px;\n  width: 414px;\n}\n\nh1 {\n  font-size: 34px;\n  font-weight: 600;\n  line-height: 36px;\n\n  text-align: center;\n  \n  margin-top: 52px;\n  margin-bottom: 16px;\n}\n\n/* payment-section */\n#payment-section {\n\tmargin-bottom: 28px;\n}\n\n#payment-section label {\n  display: block;\n}\n\n#payment-section .payment-form {\n\tdisplay: flex;\n}\n\n#payment-section .payment-form #payment-input {\n  flex-grow: 1;\n\n\tborder-radius: 4px;\n\tpadding: 8px 8px;\n\n  margin-right: 16px;\n}\n\n#payment-section .payment-form #payment-input::placeholder {\n\tfont-size: 15px;\n\tline-height: 24px;\n\tletter-spacing: 0.5px;\n  margin: 0 10px;\n  color: #8B8B8B;\n}\n\n#payment-section .payment-form #payment-button {\n  width: 56px;\n  height: 36px;\n}\n\n#payment-section .payment-form #payment-button,\n#result-checking-button {\n\tbackground-color: #00BCD4;\n\tcolor: white;\n\tborder-radius: 4px;\n  font-weight: 700;\n  font-size: 14px;\n}\n\n/* purchased-lotto-list section */\n#purchased-lotto-list-section {\n\tdisplay: flex;\n  justify-content: space-between;\n\tmargin-bottom: 32px;\n}\n\n#purchased-lotto-list-section .lotto-list-container .purchased-total-count{\n\tmargin-bottom: 8px;\n}\n\n#purchased-lotto-list-section .lotto-list-container #lotto-list {\n  width: 300px;\n  max-height: 250px;\n\tdisplay: flex;\n  flex-wrap: wrap;\n  overflow-y: auto;\n}\n\n#purchased-lotto-list-section .lotto-list-container #lotto-list.direction-column {\n  flex-direction: column;\n  overflow-y: auto;\n  flex-wrap: nowrap;\n  gap: 4px;\n}\n\n#purchased-lotto-list-section .lotto-list-container #lotto-list .lotto-icon {\n  font-weight: 600;\n  font-size: 34px;\n  line-height: 36px;\n  margin-right: 8px;\n}\n\n#purchased-lotto-list-section .lotto-list-container #lotto-list .lotto {\n  display: flex;\n  align-items: center;\n}\n\n#purchased-lotto-list-section .lotto-list-toggle-container {\n  display: flex;\n  flex-direction: column;\n  align-items: flex-end;\n}\n\n#purchased-lotto-list-section .lotto-list-toggle-container p {\n\tmargin-bottom: 12px;\n}\n\n#purchased-lotto-list-section #lotto-list-toggle-button {\n  width: 34px;\n  height: 20px;\n  background-image: url(" + ___CSS_LOADER_URL_REPLACEMENT_0___ + ");\n  background-size: contain;\n  background-repeat: no-repeat;\n}\n\n#purchased-lotto-list-section #lotto-list-toggle-button.toggle-switch {\n  background-image: url(" + ___CSS_LOADER_URL_REPLACEMENT_1___ + ");\n}\n\n/* winning-number-section */\n#winning-number-section p {\n  margin-bottom: 8px;\n}\n\n#winning-number-section .winning-number-form .winning-number-inputs{\n  display: flex;\n\tjustify-content: space-between;\n  margin-bottom: 24px;\n}\n\n#winning-number-section .winning-number-container #winning-number-list {\n\tdisplay: flex;\n\tgap: 8px;\n}\n\n#winning-number-section .winning-number-container .bonus-number-container{\n\tdisplay: flex;\n  flex-direction: column;\n\talign-items: flex-end;\n}\n\n#winning-number-section .winning-number-container  .winning-number-input {\n\twidth: 34px;\n\theight: 36px;\n\tborder-radius: 4px;\n  padding: 0;\n\ttext-align: center;\n}\n\n#winning-number-section .winning-number-container #result-checking-button {\n  width: 382px;\n\theight: 36px;\n}\n\n/* modal */\n.modal-background {\n  position: absolute; \n  top: 0; \n  left: 0; \n  width: 100%; \n  height: 100%; \n  display: none; \n  background-color: rgba(0, 0, 0, 0.5);; \n} \n\n.modal-background.show { \n  display: block; \n} \n\n.modal { \n  position: absolute; \n  top: 50%; \n  left: 50%; \n  width: 350px;\n  height: 500px;   \n  padding: 16px; \n  background-color: rgb(255, 255, 255); \n  border-radius: 4px;\n  transform: translateX(-50%) translateY(-50%); \n}\n\n.modal-header {\n  text-align: right;\n}\n\n.modal-body {\n  display: flex;\n  align-items: center;\n  flex-direction: column;\n}\n\n.modal-title {\n  font-weight: 600;\n  font-size: 20px;\n  line-height: 24px;\n  margin-bottom: 32px;\n}\n\ntable {\n  border-top: 1px solid #DCDCDC;;\n  border-collapse: collapse;\n  text-align: center;\n  margin-bottom: 16px;\n}\n\nth {\n  font-weight: 600;\n  font-size: 15px;\n  line-height: 24px;\n  border-bottom: 1px solid #DCDCDC;\n  padding: 8px;\n}\n\ntr {\n  font-weight: 400;\n  font-size: 15px;\n  line-height: 24px;\n  border-bottom: 1px solid #DCDCDC;\n}\n\ntd {\n  padding: 8px;\n}\n.modal-earning-weight {\n  font-weight: 600;\n  font-size: 15px;\n  line-height: 24px;\n}\n\n#restart {\n  padding: 10px 30px;\n  position: absolute;\n  width: 152px;\n  height: 36px;\n  left: 99px;\n  top: 415px;\n  background: #00BCD4;\n  border-radius: 4px;\n  color: white;\n}\n\n#payment-section .payment-form #payment-button:hover,\n#result-checking-button:hover,\n#restart:hover {\n  background-color: #82d2df;\n  transition: 0.3s;\n}", "",{"version":3,"sources":["webpack://./src/css/index.css"],"names":[],"mappings":"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","sourcesContent":["/* font Roboto */\n@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');\n/* reset css */\n@import url('https://cdn.jsdelivr.net/npm/reset-css@5.0.1/reset.min.css');\n\n* {\n  box-sizing: border-box;\n}\n\nhtml {\n  font-family: 'Roboto', sans-serif;\n}\n\nbody {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  background-color: #E5E5E5;\n  height: 100vh;\n}\n\n/* COMMON */\np,\nlabel {\n  font-size: 15px;\n  line-height: 24px;\n\tletter-spacing: 0.5px;\n\tcolor: rgba(0, 0, 0, 0.87);\n}\n\ninput {\n  border: 1px solid #B4B4B4;\n}\n\ninput::-webkit-inner-spin-button {\n  -webkit-appearance: none;\n}\n\ninput:focus {\n  outline: 1px solid #00BCD4;\n  border: none;\n}\n\ninput:invalid {\n  border: none;\n  outline: 1.5px solid #E36DB0;\n  background-color: #fcdfef;\n}\n\n.error-text {\n  color: #E36DB0;\n  text-align: center;\n}\n\nbutton {\n  background: inherit; \n  border: none; \n  box-shadow: none; \n  padding: 0; \n  overflow: visible; \n  cursor: pointer;\n}\n\n.invisible {\n  display: none;\n}\n\n.hidden {\n  visibility: hidden;\n}\n\n#payment-section .payment-form #payment-button.disabled {\n  background-color: #828282;\n  opacity: 0.6;\n  cursor: default;\n}\n\n#app {\n  display: flex;\n  flex-direction: column;\n\n  border: 1px solid rgba(0, 0, 0, 0.12);\n  border-radius: 4px;\n  background-color: white;\n\n  padding: 0 16px;\n\n  height: 727px;\n  width: 414px;\n}\n\nh1 {\n  font-size: 34px;\n  font-weight: 600;\n  line-height: 36px;\n\n  text-align: center;\n  \n  margin-top: 52px;\n  margin-bottom: 16px;\n}\n\n/* payment-section */\n#payment-section {\n\tmargin-bottom: 28px;\n}\n\n#payment-section label {\n  display: block;\n}\n\n#payment-section .payment-form {\n\tdisplay: flex;\n}\n\n#payment-section .payment-form #payment-input {\n  flex-grow: 1;\n\n\tborder-radius: 4px;\n\tpadding: 8px 8px;\n\n  margin-right: 16px;\n}\n\n#payment-section .payment-form #payment-input::placeholder {\n\tfont-size: 15px;\n\tline-height: 24px;\n\tletter-spacing: 0.5px;\n  margin: 0 10px;\n  color: #8B8B8B;\n}\n\n#payment-section .payment-form #payment-button {\n  width: 56px;\n  height: 36px;\n}\n\n#payment-section .payment-form #payment-button,\n#result-checking-button {\n\tbackground-color: #00BCD4;\n\tcolor: white;\n\tborder-radius: 4px;\n  font-weight: 700;\n  font-size: 14px;\n}\n\n/* purchased-lotto-list section */\n#purchased-lotto-list-section {\n\tdisplay: flex;\n  justify-content: space-between;\n\tmargin-bottom: 32px;\n}\n\n#purchased-lotto-list-section .lotto-list-container .purchased-total-count{\n\tmargin-bottom: 8px;\n}\n\n#purchased-lotto-list-section .lotto-list-container #lotto-list {\n  width: 300px;\n  max-height: 250px;\n\tdisplay: flex;\n  flex-wrap: wrap;\n  overflow-y: auto;\n}\n\n#purchased-lotto-list-section .lotto-list-container #lotto-list.direction-column {\n  flex-direction: column;\n  overflow-y: auto;\n  flex-wrap: nowrap;\n  gap: 4px;\n}\n\n#purchased-lotto-list-section .lotto-list-container #lotto-list .lotto-icon {\n  font-weight: 600;\n  font-size: 34px;\n  line-height: 36px;\n  margin-right: 8px;\n}\n\n#purchased-lotto-list-section .lotto-list-container #lotto-list .lotto {\n  display: flex;\n  align-items: center;\n}\n\n#purchased-lotto-list-section .lotto-list-toggle-container {\n  display: flex;\n  flex-direction: column;\n  align-items: flex-end;\n}\n\n#purchased-lotto-list-section .lotto-list-toggle-container p {\n\tmargin-bottom: 12px;\n}\n\n#purchased-lotto-list-section #lotto-list-toggle-button {\n  width: 34px;\n  height: 20px;\n  background-image: url(\"../../images/toggle_off.svg\");\n  background-size: contain;\n  background-repeat: no-repeat;\n}\n\n#purchased-lotto-list-section #lotto-list-toggle-button.toggle-switch {\n  background-image: url(\"../../images/toggle_on.svg\");\n}\n\n/* winning-number-section */\n#winning-number-section p {\n  margin-bottom: 8px;\n}\n\n#winning-number-section .winning-number-form .winning-number-inputs{\n  display: flex;\n\tjustify-content: space-between;\n  margin-bottom: 24px;\n}\n\n#winning-number-section .winning-number-container #winning-number-list {\n\tdisplay: flex;\n\tgap: 8px;\n}\n\n#winning-number-section .winning-number-container .bonus-number-container{\n\tdisplay: flex;\n  flex-direction: column;\n\talign-items: flex-end;\n}\n\n#winning-number-section .winning-number-container  .winning-number-input {\n\twidth: 34px;\n\theight: 36px;\n\tborder-radius: 4px;\n  padding: 0;\n\ttext-align: center;\n}\n\n#winning-number-section .winning-number-container #result-checking-button {\n  width: 382px;\n\theight: 36px;\n}\n\n/* modal */\n.modal-background {\n  position: absolute; \n  top: 0; \n  left: 0; \n  width: 100%; \n  height: 100%; \n  display: none; \n  background-color: rgba(0, 0, 0, 0.5);; \n} \n\n.modal-background.show { \n  display: block; \n} \n\n.modal { \n  position: absolute; \n  top: 50%; \n  left: 50%; \n  width: 350px;\n  height: 500px;   \n  padding: 16px; \n  background-color: rgb(255, 255, 255); \n  border-radius: 4px;\n  transform: translateX(-50%) translateY(-50%); \n}\n\n.modal-header {\n  text-align: right;\n}\n\n.modal-body {\n  display: flex;\n  align-items: center;\n  flex-direction: column;\n}\n\n.modal-title {\n  font-weight: 600;\n  font-size: 20px;\n  line-height: 24px;\n  margin-bottom: 32px;\n}\n\ntable {\n  border-top: 1px solid #DCDCDC;;\n  border-collapse: collapse;\n  text-align: center;\n  margin-bottom: 16px;\n}\n\nth {\n  font-weight: 600;\n  font-size: 15px;\n  line-height: 24px;\n  border-bottom: 1px solid #DCDCDC;\n  padding: 8px;\n}\n\ntr {\n  font-weight: 400;\n  font-size: 15px;\n  line-height: 24px;\n  border-bottom: 1px solid #DCDCDC;\n}\n\ntd {\n  padding: 8px;\n}\n.modal-earning-weight {\n  font-weight: 600;\n  font-size: 15px;\n  line-height: 24px;\n}\n\n#restart {\n  padding: 10px 30px;\n  position: absolute;\n  width: 152px;\n  height: 36px;\n  left: 99px;\n  top: 415px;\n  background: #00BCD4;\n  border-radius: 4px;\n  color: white;\n}\n\n#payment-section .payment-form #payment-button:hover,\n#result-checking-button:hover,\n#restart:hover {\n  background-color: #82d2df;\n  transition: 0.3s;\n}"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.id, "/* font Roboto */\n/* reset css */\n\n* {\n  box-sizing: border-box;\n}\n\nhtml {\n  font-family: 'Roboto', sans-serif;\n}\n\nbody {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  background-color: #E5E5E5;\n  height: 100vh;\n}\n\n/* COMMON */\np,\nlabel {\n  font-size: 15px;\n  line-height: 24px;\n\tletter-spacing: 0.5px;\n\tcolor: rgba(0, 0, 0, 0.87);\n}\n\ninput {\n  border: 1px solid #B4B4B4;\n}\n\ninput::-webkit-inner-spin-button {\n  -webkit-appearance: none;\n}\n\ninput:focus {\n  outline: 1px solid #00BCD4;\n  border: none;\n}\n\ninput:invalid {\n  border: none;\n  outline: 1.5px solid #E36DB0;\n  background-color: #fcdfef;\n}\n\n.error-text {\n  color: #E36DB0;\n  text-align: center;\n}\n\nbutton {\n  background: inherit; \n  border: none; \n  box-shadow: none; \n  padding: 0; \n  overflow: visible; \n  cursor: pointer;\n}\n\n.invisible {\n  display: none;\n}\n\n.hidden {\n  visibility: hidden;\n}\n\n#payment-section .payment-form #payment-button.disabled {\n  background-color: #828282;\n  opacity: 0.6;\n  cursor: default;\n  pointer-events: none;\n}\n\n#app {\n  display: flex;\n  flex-direction: column;\n\n  border: 1px solid rgba(0, 0, 0, 0.12);\n  border-radius: 4px;\n  background-color: white;\n\n  padding: 0 16px;\n\n  height: 727px;\n  width: 414px;\n}\n\nh1 {\n  font-size: 34px;\n  font-weight: 600;\n  line-height: 36px;\n\n  text-align: center;\n  \n  margin-top: 52px;\n  margin-bottom: 16px;\n}\n\n/* payment-section */\n#payment-section {\n\tmargin-bottom: 28px;\n}\n\n#payment-section label {\n  display: block;\n}\n\n#payment-section .payment-form {\n\tdisplay: flex;\n}\n\n#payment-section .payment-form #payment-input {\n  flex-grow: 1;\n\n\tborder-radius: 4px;\n\tpadding: 8px 8px;\n\n  margin-right: 16px;\n}\n\n#payment-section .payment-form #payment-input::placeholder {\n\tfont-size: 15px;\n\tline-height: 24px;\n\tletter-spacing: 0.5px;\n  margin: 0 10px;\n  color: #8B8B8B;\n}\n\n#payment-section .payment-form #payment-button {\n  width: 56px;\n  height: 36px;\n}\n\n#payment-section .payment-form #payment-button,\n#result-checking-button {\n\tbackground-color: #00BCD4;\n\tcolor: white;\n\tborder-radius: 4px;\n  font-weight: 700;\n  font-size: 14px;\n}\n\n/* purchased-lotto-list section */\n#purchased-lotto-list-section {\n\tdisplay: flex;\n  justify-content: space-between;\n\tmargin-bottom: 32px;\n}\n\n#purchased-lotto-list-section .lotto-list-container .purchased-total-count{\n\tmargin-bottom: 8px;\n}\n\n#purchased-lotto-list-section .lotto-list-container #lotto-list {\n  width: 300px;\n  max-height: 250px;\n\tdisplay: flex;\n  flex-wrap: wrap;\n  overflow-y: auto;\n}\n\n#purchased-lotto-list-section .lotto-list-container #lotto-list.direction-column {\n  flex-direction: column;\n  overflow-y: auto;\n  flex-wrap: nowrap;\n  gap: 4px;\n}\n\n#purchased-lotto-list-section .lotto-list-container #lotto-list .lotto-icon {\n  font-weight: 600;\n  font-size: 34px;\n  line-height: 36px;\n  margin-right: 8px;\n}\n\n#purchased-lotto-list-section .lotto-list-container #lotto-list .lotto {\n  display: flex;\n  align-items: center;\n}\n\n#purchased-lotto-list-section .lotto-list-toggle-container {\n  display: flex;\n  flex-direction: column;\n  align-items: flex-end;\n}\n\n#purchased-lotto-list-section .lotto-list-toggle-container p {\n\tmargin-bottom: 12px;\n}\n\n#purchased-lotto-list-section #lotto-list-toggle-button {\n  width: 34px;\n  height: 20px;\n  background-image: url(" + ___CSS_LOADER_URL_REPLACEMENT_0___ + ");\n  background-size: contain;\n  background-repeat: no-repeat;\n}\n\n#purchased-lotto-list-section #lotto-list-toggle-button.toggle-switch {\n  background-image: url(" + ___CSS_LOADER_URL_REPLACEMENT_1___ + ");\n}\n\n/* winning-number-section */\n#winning-number-section p {\n  margin-bottom: 8px;\n}\n\n#winning-number-section .winning-number-form .winning-number-inputs{\n  display: flex;\n\tjustify-content: space-between;\n  margin-bottom: 24px;\n}\n\n#winning-number-section .winning-number-container #winning-number-list {\n\tdisplay: flex;\n\tgap: 8px;\n}\n\n#winning-number-section .winning-number-container .bonus-number-container{\n\tdisplay: flex;\n  flex-direction: column;\n\talign-items: flex-end;\n}\n\n#winning-number-section .winning-number-container  .winning-number-input {\n\twidth: 34px;\n\theight: 36px;\n\tborder-radius: 4px;\n  padding: 0;\n\ttext-align: center;\n}\n\n#winning-number-section .winning-number-container #result-checking-button {\n  width: 382px;\n\theight: 36px;\n}\n\n/* modal */\n.modal-background {\n  position: absolute; \n  top: 0; \n  left: 0; \n  width: 100%; \n  height: 100%; \n  display: none; \n  background-color: rgba(0, 0, 0, 0.5);; \n} \n\n.modal-background.show { \n  display: block; \n} \n\n.modal { \n  position: absolute; \n  top: 50%; \n  left: 50%; \n  width: 350px;\n  height: 500px;   \n  padding: 16px; \n  background-color: rgb(255, 255, 255); \n  border-radius: 4px;\n  transform: translateX(-50%) translateY(-50%); \n}\n\n.modal-header {\n  text-align: right;\n}\n\n.modal-body {\n  display: flex;\n  align-items: center;\n  flex-direction: column;\n}\n\n.modal-title {\n  font-weight: 600;\n  font-size: 20px;\n  line-height: 24px;\n  margin-bottom: 32px;\n}\n\ntable {\n  border-top: 1px solid #DCDCDC;;\n  border-collapse: collapse;\n  text-align: center;\n  margin-bottom: 16px;\n}\n\nth {\n  font-weight: 600;\n  font-size: 15px;\n  line-height: 24px;\n  border-bottom: 1px solid #DCDCDC;\n  padding: 8px;\n}\n\ntr {\n  font-weight: 400;\n  font-size: 15px;\n  line-height: 24px;\n  border-bottom: 1px solid #DCDCDC;\n}\n\ntd {\n  padding: 8px;\n}\n.modal-earning-weight {\n  font-weight: 600;\n  font-size: 15px;\n  line-height: 24px;\n}\n\n#restart {\n  padding: 10px 30px;\n  position: absolute;\n  width: 152px;\n  height: 36px;\n  left: 99px;\n  top: 415px;\n  background: #00BCD4;\n  border-radius: 4px;\n  color: white;\n}\n\n#payment-section .payment-form #payment-button:hover,\n#result-checking-button:hover,\n#restart:hover {\n  background-color: #82d2df;\n  transition: 0.3s;\n}", "",{"version":3,"sources":["webpack://./src/css/index.css"],"names":[],"mappings":"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","sourcesContent":["/* font Roboto */\n@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');\n/* reset css */\n@import url('https://cdn.jsdelivr.net/npm/reset-css@5.0.1/reset.min.css');\n\n* {\n  box-sizing: border-box;\n}\n\nhtml {\n  font-family: 'Roboto', sans-serif;\n}\n\nbody {\n  display: flex;\n  justify-content: center;\n  align-items: center;\n  background-color: #E5E5E5;\n  height: 100vh;\n}\n\n/* COMMON */\np,\nlabel {\n  font-size: 15px;\n  line-height: 24px;\n\tletter-spacing: 0.5px;\n\tcolor: rgba(0, 0, 0, 0.87);\n}\n\ninput {\n  border: 1px solid #B4B4B4;\n}\n\ninput::-webkit-inner-spin-button {\n  -webkit-appearance: none;\n}\n\ninput:focus {\n  outline: 1px solid #00BCD4;\n  border: none;\n}\n\ninput:invalid {\n  border: none;\n  outline: 1.5px solid #E36DB0;\n  background-color: #fcdfef;\n}\n\n.error-text {\n  color: #E36DB0;\n  text-align: center;\n}\n\nbutton {\n  background: inherit; \n  border: none; \n  box-shadow: none; \n  padding: 0; \n  overflow: visible; \n  cursor: pointer;\n}\n\n.invisible {\n  display: none;\n}\n\n.hidden {\n  visibility: hidden;\n}\n\n#payment-section .payment-form #payment-button.disabled {\n  background-color: #828282;\n  opacity: 0.6;\n  cursor: default;\n  pointer-events: none;\n}\n\n#app {\n  display: flex;\n  flex-direction: column;\n\n  border: 1px solid rgba(0, 0, 0, 0.12);\n  border-radius: 4px;\n  background-color: white;\n\n  padding: 0 16px;\n\n  height: 727px;\n  width: 414px;\n}\n\nh1 {\n  font-size: 34px;\n  font-weight: 600;\n  line-height: 36px;\n\n  text-align: center;\n  \n  margin-top: 52px;\n  margin-bottom: 16px;\n}\n\n/* payment-section */\n#payment-section {\n\tmargin-bottom: 28px;\n}\n\n#payment-section label {\n  display: block;\n}\n\n#payment-section .payment-form {\n\tdisplay: flex;\n}\n\n#payment-section .payment-form #payment-input {\n  flex-grow: 1;\n\n\tborder-radius: 4px;\n\tpadding: 8px 8px;\n\n  margin-right: 16px;\n}\n\n#payment-section .payment-form #payment-input::placeholder {\n\tfont-size: 15px;\n\tline-height: 24px;\n\tletter-spacing: 0.5px;\n  margin: 0 10px;\n  color: #8B8B8B;\n}\n\n#payment-section .payment-form #payment-button {\n  width: 56px;\n  height: 36px;\n}\n\n#payment-section .payment-form #payment-button,\n#result-checking-button {\n\tbackground-color: #00BCD4;\n\tcolor: white;\n\tborder-radius: 4px;\n  font-weight: 700;\n  font-size: 14px;\n}\n\n/* purchased-lotto-list section */\n#purchased-lotto-list-section {\n\tdisplay: flex;\n  justify-content: space-between;\n\tmargin-bottom: 32px;\n}\n\n#purchased-lotto-list-section .lotto-list-container .purchased-total-count{\n\tmargin-bottom: 8px;\n}\n\n#purchased-lotto-list-section .lotto-list-container #lotto-list {\n  width: 300px;\n  max-height: 250px;\n\tdisplay: flex;\n  flex-wrap: wrap;\n  overflow-y: auto;\n}\n\n#purchased-lotto-list-section .lotto-list-container #lotto-list.direction-column {\n  flex-direction: column;\n  overflow-y: auto;\n  flex-wrap: nowrap;\n  gap: 4px;\n}\n\n#purchased-lotto-list-section .lotto-list-container #lotto-list .lotto-icon {\n  font-weight: 600;\n  font-size: 34px;\n  line-height: 36px;\n  margin-right: 8px;\n}\n\n#purchased-lotto-list-section .lotto-list-container #lotto-list .lotto {\n  display: flex;\n  align-items: center;\n}\n\n#purchased-lotto-list-section .lotto-list-toggle-container {\n  display: flex;\n  flex-direction: column;\n  align-items: flex-end;\n}\n\n#purchased-lotto-list-section .lotto-list-toggle-container p {\n\tmargin-bottom: 12px;\n}\n\n#purchased-lotto-list-section #lotto-list-toggle-button {\n  width: 34px;\n  height: 20px;\n  background-image: url(\"../../images/toggle_off.svg\");\n  background-size: contain;\n  background-repeat: no-repeat;\n}\n\n#purchased-lotto-list-section #lotto-list-toggle-button.toggle-switch {\n  background-image: url(\"../../images/toggle_on.svg\");\n}\n\n/* winning-number-section */\n#winning-number-section p {\n  margin-bottom: 8px;\n}\n\n#winning-number-section .winning-number-form .winning-number-inputs{\n  display: flex;\n\tjustify-content: space-between;\n  margin-bottom: 24px;\n}\n\n#winning-number-section .winning-number-container #winning-number-list {\n\tdisplay: flex;\n\tgap: 8px;\n}\n\n#winning-number-section .winning-number-container .bonus-number-container{\n\tdisplay: flex;\n  flex-direction: column;\n\talign-items: flex-end;\n}\n\n#winning-number-section .winning-number-container  .winning-number-input {\n\twidth: 34px;\n\theight: 36px;\n\tborder-radius: 4px;\n  padding: 0;\n\ttext-align: center;\n}\n\n#winning-number-section .winning-number-container #result-checking-button {\n  width: 382px;\n\theight: 36px;\n}\n\n/* modal */\n.modal-background {\n  position: absolute; \n  top: 0; \n  left: 0; \n  width: 100%; \n  height: 100%; \n  display: none; \n  background-color: rgba(0, 0, 0, 0.5);; \n} \n\n.modal-background.show { \n  display: block; \n} \n\n.modal { \n  position: absolute; \n  top: 50%; \n  left: 50%; \n  width: 350px;\n  height: 500px;   \n  padding: 16px; \n  background-color: rgb(255, 255, 255); \n  border-radius: 4px;\n  transform: translateX(-50%) translateY(-50%); \n}\n\n.modal-header {\n  text-align: right;\n}\n\n.modal-body {\n  display: flex;\n  align-items: center;\n  flex-direction: column;\n}\n\n.modal-title {\n  font-weight: 600;\n  font-size: 20px;\n  line-height: 24px;\n  margin-bottom: 32px;\n}\n\ntable {\n  border-top: 1px solid #DCDCDC;;\n  border-collapse: collapse;\n  text-align: center;\n  margin-bottom: 16px;\n}\n\nth {\n  font-weight: 600;\n  font-size: 15px;\n  line-height: 24px;\n  border-bottom: 1px solid #DCDCDC;\n  padding: 8px;\n}\n\ntr {\n  font-weight: 400;\n  font-size: 15px;\n  line-height: 24px;\n  border-bottom: 1px solid #DCDCDC;\n}\n\ntd {\n  padding: 8px;\n}\n.modal-earning-weight {\n  font-weight: 600;\n  font-size: 15px;\n  line-height: 24px;\n}\n\n#restart {\n  padding: 10px 30px;\n  position: absolute;\n  width: 152px;\n  height: 36px;\n  left: 99px;\n  top: 415px;\n  background: #00BCD4;\n  border-radius: 4px;\n  color: white;\n}\n\n#payment-section .payment-form #payment-button:hover,\n#result-checking-button:hover,\n#restart:hover {\n  background-color: #82d2df;\n  transition: 0.3s;\n}"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
